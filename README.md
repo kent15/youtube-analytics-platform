@@ -51,6 +51,68 @@ YouTube Data API v3を利用したチャンネル分析ツールです。
 - 投稿頻度の傾向（高頻度 / 中頻度 / 低頻度）
 - バズ依存性（バズ依存型 / 安定型）
 
+**推移グラフ**
+
+- 登録者数推移グラフ（期間切り替え: 7日 / 30日 / 90日）
+- 再生数推移グラフ（期間切り替え: 7日 / 30日 / 90日）
+- データソース: チャンネル分析実行時に `channel_snapshots` テーブルへスナップショットを自動記録
+- グラフ描画: Chart.js を使用した折れ線グラフ
+
+-----
+
+### 推移グラフの設計
+
+**スナップショット記録**
+
+- チャンネル分析の実行時に、登録者数・総再生回数をタイムスタンプ付きで `channel_snapshots` テーブルに自動記録する
+- 同一チャンネル・同一日のスナップショットは1件のみ保持（UPSERT）
+- クォータの追加消費なし（既に取得済みのチャンネル情報を記録するのみ）
+
+**テーブル定義**
+
+```sql
+CREATE TABLE IF NOT EXISTS channel_snapshots (
+    id              BIGSERIAL PRIMARY KEY,
+    channel_id      VARCHAR(50) NOT NULL REFERENCES channels(channel_id),
+    subscriber_count BIGINT NOT NULL,
+    total_view_count BIGINT NOT NULL,
+    recorded_at     DATE NOT NULL DEFAULT CURRENT_DATE,
+    UNIQUE (channel_id, recorded_at)
+);
+```
+
+**期間フィルタ**
+
+| 選択肢 | WHERE句 | 用途 |
+|-------|---------|------|
+| 7日   | `recorded_at >= CURRENT_DATE - 7` | 直近の短期トレンド確認 |
+| 30日  | `recorded_at >= CURRENT_DATE - 30` | 月次レベルの成長把握 |
+| 90日  | `recorded_at >= CURRENT_DATE - 90` | 四半期レベルの長期傾向 |
+
+**DTOの構造**
+
+```
+TrendGraphDto
+├── PeriodDays: int                    # 7 / 30 / 90
+├── SubscriberTrend: List<ChannelSnapshotDto>
+└── ViewCountTrend: List<ChannelSnapshotDto>
+
+ChannelSnapshotDto
+├── RecordedAt: DateTime
+├── SubscriberCount: long
+└── TotalViewCount: long
+```
+
+**AnalysisResultDto への追加**
+
+- `AnalysisResultDto` に `TrendGraph: TrendGraphDto` プロパティを追加
+- グラフのデフォルト表示期間は30日
+
+**注意事項**
+
+- スナップショットは分析実行ごとに蓄積されるため、初回分析時はデータ点が1つのみ
+- データ点が2つ未満の場合、UI側で「データ蓄積中」の旨を表示する
+- 90日分のグラフを完全に表示するには、90日間の分析実行履歴が必要
 ### UI画面構成
 
 **① トップ画面**
@@ -134,6 +196,8 @@ YouTubeAnalyticsTool/
 │   │   │   ├── AnalysisResultDto.cs             # 分析結果の転送オブジェクト
 │   │   │   ├── ChannelInfoDto.cs                # チャンネル基本情報DTO
 │   │   │   ├── VideoDetailDto.cs                # 動画詳細DTO
+│   │   │   ├── ChannelSnapshotDto.cs            # スナップショット1件のDTO
+│   │   │   └── TrendGraphDto.cs                 # 推移グラフ用DTO（期間+データ点列）
 │   │   │   └── StatisticsDto.cs                 # 統計情報DTO（UI用）
 │   │   └── Interfaces/
 │   │       └── IChannelAnalysisService.cs
@@ -141,7 +205,8 @@ YouTubeAnalyticsTool/
 │   ├── YouTubeAnalytics.Domain/                 # Domain層
 │   │   ├── Entities/
 │   │   │   ├── Channel.cs                       # チャンネルエンティティ
-│   │   │   └── Video.cs                         # 動画エンティティ
+│   │   │   ├── Video.cs                         # 動画エンティティ
+│   │   │   └── ChannelSnapshot.cs               # チャンネルスナップショット（時系列記録用）
 │   │   ├── Services/
 │   │   │   ├── GrowthJudgementService.cs        # 成長傾向判定
 │   │   │   └── PublishingPatternService.cs      # 投稿パターン判定
@@ -151,7 +216,8 @@ YouTubeAnalyticsTool/
 │   │   │   └── ContentStrategy.cs               # コンテンツ戦略（ViralDependent/Stable）
 │   │   └── Repositories/
 │   │       ├── IChannelRepository.cs
-│   │       └── IVideoRepository.cs
+│   │       ├── IVideoRepository.cs
+│   │       └── IChannelSnapshotRepository.cs    # スナップショット取得・保存
 │   │
 │   └── YouTubeAnalytics.Infrastructure/         # Infrastructure層
 │       ├── YouTube/
@@ -161,9 +227,10 @@ YouTubeAnalyticsTool/
 │       ├── Persistence/
 │       │   ├── Repositories/
 │       │   │   ├── ChannelRepository.cs         # チャンネルDB操作
-│       │   │   └── VideoRepository.cs           # 動画DB操作
+│       │   │   ├── VideoRepository.cs           # 動画DB操作
+│       │   │   └── ChannelSnapshotRepository.cs # スナップショットDB操作
 │       │   └── Scripts/
-│       │       └── InitialSchema.sql            # 初期スキーマ
+│       │       └── InitialSchema.sql            # 初期スキーマ（channel_snapshots含む）
 │       ├── Cache/
 │       │   └── CacheService.cs                  # Redisキャッシュ操作
 │       └── Configuration/
@@ -556,9 +623,9 @@ cd src/YouTubeAnalytics.Web/wwwroot
 
 ### ステップ1: Infrastructure層（バックエンド基盤）
 
-1. データベーススキーマ作成（`InitialSchema.sql`）
-1. エンティティ定義（`Channel.cs`, `Video.cs`）
-1. Repository実装（`ChannelRepository.cs`, `VideoRepository.cs`）
+1. データベーススキーマ作成（`InitialSchema.sql` — `channel_snapshots` テーブル含む）
+1. エンティティ定義（`Channel.cs`, `Video.cs`, `ChannelSnapshot.cs`）
+1. Repository実装（`ChannelRepository.cs`, `VideoRepository.cs`, `ChannelSnapshotRepository.cs`）
 1. `YouTubeApiClient.cs` 実装
 1. `QuotaManager.cs` 実装
 1. `RateLimiter.cs` 実装
@@ -572,9 +639,9 @@ cd src/YouTubeAnalytics.Web/wwwroot
 
 ### ステップ3: Application層（ユースケース）
 
-1. DTOs定義（`AnalysisResultDto.cs`, `StatisticsDto.cs` 等）
+1. DTOs定義（`AnalysisResultDto.cs`, `ChannelSnapshotDto.cs`, `TrendGraphDto.cs` 等）
 1. `AnalysisCalculator.cs` 実装
-1. `ChannelAnalysisService.cs` 実装
+1. `ChannelAnalysisService.cs` 実装（スナップショット記録・推移データ取得を含む）
 
 ### ステップ4: Web層（API）
 
