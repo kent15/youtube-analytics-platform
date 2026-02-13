@@ -516,6 +516,90 @@
       opacity: 1;
     }
 
+    /* ===== Trend Graph Section ===== */
+    .graph-section { margin-bottom: 32px; }
+
+    .graph-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .period-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .period-tab {
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .period-tab:hover { color: var(--text); }
+    .period-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow); }
+
+    .graph-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .graph-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .graph-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .chart-wrap { position: relative; height: 220px; }
+
+    .chart-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 220px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      gap: 8px;
+    }
+
+    .chart-empty-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .graph-grid { grid-template-columns: 1fr; }
+      .graph-section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+    }
+
     /* ===== Responsive ===== */
     @media (max-width: 640px) {
       .header { padding: 12px 16px; }
@@ -728,6 +812,38 @@
         </div>
       </div>
 
+      <!-- Trend Graphs -->
+      <div class="graph-section">
+        <div class="graph-section-header">
+          <div class="section-title" style="margin-bottom:0;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="var(--primary)">
+              <path d="M2 16h16v2H2v-2zm1-1l4-4 3 3 6.5-7L18 8.5V3h-5.5l1.8 1.8L9 10.5 6 7.5l-4 4 1 1z"/>
+            </svg>
+            推移グラフ
+          </div>
+          <div class="period-tabs" id="periodTabs">
+            <button class="period-tab" data-days="7" onclick="switchPeriod(7)">7日</button>
+            <button class="period-tab active" data-days="30" onclick="switchPeriod(30)">30日</button>
+            <button class="period-tab" data-days="90" onclick="switchPeriod(90)">90日</button>
+          </div>
+        </div>
+
+        <div class="graph-grid">
+          <div class="graph-card">
+            <div class="graph-card-title">登録者数の推移</div>
+            <div class="chart-wrap">
+              <canvas id="chartSubscribers"></canvas>
+            </div>
+          </div>
+          <div class="graph-card">
+            <div class="graph-card-title">総再生回数の推移</div>
+            <div class="chart-wrap">
+              <canvas id="chartViews"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Video list table -->
       <div class="table-container">
         <div class="table-header">
@@ -768,6 +884,7 @@
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script>
     /* ===== Mock Data ===== */
     const MOCK_CHANNELS = {
@@ -835,6 +952,39 @@
         ]
       }
     };
+
+    /* ===== Generate Mock Snapshots ===== */
+    function generateSnapshots(baseSubs, baseViews, days, trend) {
+      const snapshots = [];
+      const now = new Date('2026-02-13');
+      const dailySubsGrowth = trend === 'growing' ? 3200 : trend === 'declining' ? -800 : 200;
+      const dailyViewsGrowth = trend === 'growing' ? 2800000 : trend === 'declining' ? 400000 : 1200000;
+      for (let i = days; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const noise = () => (Math.random() - 0.5) * 0.4;
+        snapshots.push({
+          date: d.toISOString().slice(0, 10),
+          subscribers: Math.round(baseSubs - dailySubsGrowth * i * (1 + noise())),
+          views: Math.round(baseViews - dailyViewsGrowth * i * (1 + noise()))
+        });
+      }
+      return snapshots;
+    }
+
+    // Pre-generate 90-day snapshots for each channel
+    MOCK_CHANNELS['UCm7zKBNZwzjNv-lbcDkTU4Q'].snapshots =
+      generateSnapshots(11200000, 12846320000, 90, 'growing');
+    MOCK_CHANNELS['UCZf__ehlCEBPop-_sldpBUQ'].snapshots =
+      generateSnapshots(15400000, 5230100000, 90, 'stable');
+    MOCK_CHANNELS['UC_x5XG1OV2P6uZZ5FSM9Ttw'].snapshots =
+      generateSnapshots(2400000, 312500000, 90, 'declining');
+
+    /* ===== Chart Instances ===== */
+    let chartSubs = null;
+    let chartViews = null;
+    let currentChannelData = null;
+    let currentPeriod = 30;
 
     /* ===== Screen Management ===== */
     function showScreen(name) {
@@ -923,6 +1073,14 @@
         card.querySelector('.judgement-desc').textContent = jData[i].desc;
       });
 
+      // Charts
+      currentChannelData = data;
+      currentPeriod = 30;
+      document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.period-tab[data-days="30"]').classList.add('active');
+      // Delay chart render to ensure canvas is visible
+      setTimeout(() => renderCharts(data, 30), 50);
+
       // Video table
       const tbody = document.getElementById('videoTableBody');
       tbody.innerHTML = '';
@@ -937,6 +1095,101 @@
           '<td class="num">' + v.comments + '</td>';
         tbody.appendChild(tr);
       });
+    }
+
+    /* ===== Render Charts ===== */
+    function renderCharts(data, days) {
+      const snapshots = data.snapshots.slice(-(days + 1));
+      const labels = snapshots.map(s => {
+        const d = new Date(s.date);
+        return (d.getMonth() + 1) + '/' + d.getDate();
+      });
+
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            titleFont: { size: 12 },
+            bodyFont: { size: 13 },
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: {
+              label: function(ctx) {
+                return ctx.parsed.y.toLocaleString();
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11 }, color: '#94a3b8', maxTicksLimit: days <= 7 ? 7 : 10 }
+          },
+          y: {
+            grid: { color: '#f1f5f9' },
+            ticks: {
+              font: { size: 11 },
+              color: '#94a3b8',
+              callback: function(v) {
+                if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B';
+                if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+                if (v >= 1e3) return (v / 1e3).toFixed(0) + 'K';
+                return v;
+              }
+            }
+          }
+        },
+        elements: {
+          point: { radius: days <= 7 ? 4 : days <= 30 ? 2 : 0, hoverRadius: 5 },
+          line: { tension: 0.3, borderWidth: 2.5 }
+        }
+      };
+
+      // Destroy previous charts
+      if (chartSubs) chartSubs.destroy();
+      if (chartViews) chartViews.destroy();
+
+      chartSubs = new Chart(document.getElementById('chartSubscribers'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: snapshots.map(s => s.subscribers),
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,.08)',
+            fill: true
+          }]
+        },
+        options: commonOptions
+      });
+
+      chartViews = new Chart(document.getElementById('chartViews'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: snapshots.map(s => s.views),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16,185,129,.08)',
+            fill: true
+          }]
+        },
+        options: commonOptions
+      });
+    }
+
+    /* ===== Switch Period ===== */
+    function switchPeriod(days) {
+      currentPeriod = days;
+      document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.period-tab[data-days="' + days + '"]').classList.add('active');
+      if (currentChannelData) {
+        renderCharts(currentChannelData, days);
+      }
     }
 
     /* ===== Sort Table (Mock) ===== */
