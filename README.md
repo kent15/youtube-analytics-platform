@@ -5,6 +5,8 @@
 YouTube Data API v3を利用したチャンネル分析ツールです。
 指定したYouTubeチャンネルの統計情報を取得・分析し、成長傾向や投稿パターンを判定します。
 
+**現在の開発状況**: バックエンドAPI + フロントエンドUI（モック段階）
+
 ### 本プロジェクトの最終目標（全体）
 
 - チャンネル分析
@@ -15,13 +17,14 @@ YouTube Data API v3を利用したチャンネル分析ツールです。
 
 ### 今回の実装スコープ（フェーズ1）
 
-✅ **チャンネル分析機能のみ実装**
+✅ **チャンネル分析機能（バックエンド + フロントエンド）**
 
 以下は**今回実装しない**：
 ❌ 動画ランキング
 ❌ 伸び率・初動分析
 ❌ 競合比較
 ❌ トレンド検知
+❌ フロントエンドとバックエンドの接続（API統合は次フェーズ）
 
 -----
 
@@ -110,10 +113,36 @@ ChannelSnapshotDto
 - スナップショットは分析実行ごとに蓄積されるため、初回分析時はデータ点が1つのみ
 - データ点が2つ未満の場合、UI側で「データ蓄積中」の旨を表示する
 - 90日分のグラフを完全に表示するには、90日間の分析実行履歴が必要
+### UI画面構成
+
+**① トップ画面**
+
+- チャンネルID/URL入力フォーム
+- サンプルチャンネルリンク
+
+**② 分析結果画面（概要タブ）**
+
+- チャンネル基本情報カード
+- 判定結果カード（成長傾向、投稿頻度、コンテンツ戦略）
+- 直近30日間サマリー
+
+**③ 分析結果画面（動画一覧タブ）**
+
+- 動画一覧テーブル（ソート・フィルタ機能付き）
+- ページネーション
+
+**④ 分析結果画面（統計タブ）**
+
+- 投稿頻度の推移グラフ
+- 再生数分布（パレート図）
+- 平均再生数の推移グラフ
+- エンゲージメント指標
 
 -----
 
 ## 採用技術スタック
+
+### バックエンド
 
 |要素         |技術                                      |バージョン|
 |-----------|----------------------------------------|-----|
@@ -126,6 +155,17 @@ ChannelSnapshotDto
 |ログ         |Serilog                                 |最新   |
 |リトライ制御     |Polly                                   |8.0以降|
 
+### フロントエンド（モック）
+
+|要素      |技術 |備考                                     |
+|--------|---|---------------------------------------|
+|フレームワーク |TBD|React / Vue / Blazor から選定予定            |
+|グラフライブラリ|TBD|Chart.js / Recharts / ApexCharts から選定予定|
+|状態管理    |TBD|フレームワーク選定後に決定                          |
+|API通信   |TBD|現在はモックデータ使用                            |
+
+**注**: フロントエンドは現在モック段階。API接続は次フェーズで実装予定。
+
 -----
 
 ## ディレクトリ構成
@@ -133,7 +173,17 @@ ChannelSnapshotDto
 ```
 YouTubeAnalyticsTool/
 ├── src/
-│   ├── YouTubeAnalytics.Web/                    # Presentation層（今回は最小限）
+│   ├── YouTubeAnalytics.Web/                    # Presentation層（バックエンドAPI + フロントエンド）
+│   │   ├── Controllers/                         # REST APIコントローラー
+│   │   │   └── ChannelAnalysisController.cs     # チャンネル分析API
+│   │   ├── wwwroot/                             # 静的ファイル（フロントエンド）
+│   │   │   ├── index.html                       # エントリポイント
+│   │   │   ├── css/                             # スタイルシート
+│   │   │   ├── js/                              # JavaScript（現在はモック）
+│   │   │   │   ├── app.js                       # メインロジック
+│   │   │   │   ├── mock-data.js                 # モックデータ
+│   │   │   │   └── api-client.js                # API通信（次フェーズで実装）
+│   │   │   └── assets/                          # 画像等
 │   │   ├── Program.cs                           # エントリポイント
 │   │   ├── appsettings.json                     # 設定ファイル
 │   │   └── appsettings.Development.json
@@ -148,6 +198,7 @@ YouTubeAnalyticsTool/
 │   │   │   ├── VideoDetailDto.cs                # 動画詳細DTO
 │   │   │   ├── ChannelSnapshotDto.cs            # スナップショット1件のDTO
 │   │   │   └── TrendGraphDto.cs                 # 推移グラフ用DTO（期間+データ点列）
+│   │   │   └── StatisticsDto.cs                 # 統計情報DTO（UI用）
 │   │   └── Interfaces/
 │   │       └── IChannelAnalysisService.cs
 │   │
@@ -189,7 +240,8 @@ YouTubeAnalyticsTool/
 │   └── YouTubeAnalytics.Tests/                  # テスト（今回は最小限）
 │
 ├── docs/
-│   └── architecture.md                          # アーキテクチャ設計書
+│   ├── architecture.md                          # アーキテクチャ設計書
+│   └── ui-design.md                             # UI設計書
 │
 ├── README.md
 └── YouTubeAnalyticsTool.sln
@@ -203,7 +255,7 @@ YouTubeAnalyticsTool/
 
 ```
 ┌─────────────────────┐
-│  Web (Presentation) │
+│  Web (Presentation) │ ← REST API / 静的ファイル配信
 └──────────┬──────────┘
            │ 依存
            ↓
@@ -226,6 +278,35 @@ YouTubeAnalyticsTool/
 
 - Domain層がInfrastructure層に依存すること
 - Infrastructure層がApplication層に依存すること
+- **フロントエンド（JavaScript）がApplication層・Domain層を直接参照すること**
+
+### Presentation層（Web）のルール
+
+**バックエンドAPI**
+
+- REST APIはControllerで実装
+- Controllerは Application層のServiceのみを呼び出す
+- レスポンスは必ずDTOで返す（エンティティを直接返さない）
+
+**フロントエンド**
+
+- 現在はモックデータで動作
+- API統合は次フェーズで実装
+- UIロジックはバックエンドの実装詳細を知らない
+
+**API設計のルール**
+
+- エンドポイント: RESTful設計（名詞ベース）
+- HTTPメソッド: GET（取得）、POST（作成）、PUT（更新）、DELETE（削除）
+- レスポンス形式: JSON
+- エラーレスポンス: 統一フォーマット
+
+**APIレスポンス変更時のルール**
+
+1. DTOの変更は必ずApplication層で実施
+1. フロントエンドへの影響を事前に確認
+1. 破壊的変更はバージョニングで対応（例: `/api/v1/`, `/api/v2/`）
+1. フィールド追加は後方互換を保つ（オプショナル項目として追加）
 
 ### Infrastructure層のルール
 
@@ -254,12 +335,20 @@ YouTubeAnalyticsTool/
 - YouTube APIの直接呼び出し（Infrastructure層経由必須）
 - データベースアクセスの直接実行（Repository経由必須）
 - ビジネスルールの実装（Domain層に委譲）
+- **UI都合でのロジック追加・変更（UI要件は必ずDTOで吸収）**
 
 **計算ロジックの原則**
 
 - `AnalysisCalculator.cs` は純粋関数（副作用なし）
 - 入力: エンティティ集合、出力: 計算結果
 - 外部依存なし（DI不要）
+
+**DTO設計のルール**
+
+- UIの表示要件に合わせたプロパティ構成
+- 計算済みの値も含める（フロントエンドで再計算させない）
+- 例: `growthReason`（判定理由の説明文）、`isViralVideo`（バズ動画フラグ）等
+- UIの都合で追加プロパティが必要な場合はDTOに追加（Domain層は変更しない）
 
 ### Domain層のルール
 
@@ -280,6 +369,7 @@ YouTubeAnalyticsTool/
 - 不変条件（Invariant）を保証
 - ビジネスルールの検証（例: 登録者数は非負整数）
 - public setterは原則禁止（コンストラクタで設定）
+- **UI都合でエンティティを変更しない（DTOで吸収）**
 
 ### 共通ルール
 
@@ -300,12 +390,34 @@ YouTubeAnalyticsTool/
 - 各レイヤーで適切な例外をスロー
 - Infrastructure層: API固有例外を汎用例外に変換
 - Application層: ビジネス例外のスロー
+- Web層（Controller）: HTTPステータスコードに変換
 - ログは構造化ログ（Serilog）で記録
 
 **DTOの必須利用**
 
 - Application層からの戻り値は必ずDTO
 - エンティティを直接外部に公開しない
+- **フロントエンドへのレスポンスも必ずDTO**
+
+### フロントエンド・バックエンド分離のルール
+
+**絶対禁止**
+
+- フロントエンドの都合でバックエンドのビジネスロジックを変更すること
+- バックエンドのエンティティ構造をフロントエンドに露出すること
+- UIの表示ロジックをバックエンドに実装すること
+
+**推奨される設計**
+
+- UIで必要な計算結果はDTOに含める（例: パーセント計算済みの値）
+- UIで必要な表示用文字列はDTOに含める（例: `growthTrendText: "成長中"`）
+- フロントエンドはDTOの構造のみに依存し、計算ロジックを持たない
+
+**変更時の調整方法**
+
+1. UI要件変更 → DTOに項目追加 → Application層で値を設定
+1. ビジネスロジック変更 → Domain層で実装 → DTOに反映
+1. 表示形式変更（色・アイコン等） → フロントエンド側のみで対応
 
 -----
 
@@ -406,6 +518,7 @@ await _quotaManager.CheckAndReserveAsync(requiredUnits: 4);
 - PostgreSQL 15以降 インストール済み
 - Redis インストール済み
 - YouTube Data API v3 のAPIキー取得済み
+- Node.js（フロントエンド開発用、モック段階では不要）
 
 ### APIキーの取得方法
 
@@ -437,6 +550,16 @@ psql -U postgres -f src/YouTubeAnalytics.Infrastructure/Persistence/Scripts/Init
 # アプリケーション起動
 cd src/YouTubeAnalytics.Web
 dotnet run
+```
+
+### フロントエンド開発（モック段階）
+
+```bash
+# Web層のwwwrootディレクトリで静的ファイルを編集
+cd src/YouTubeAnalytics.Web/wwwroot
+
+# ブラウザで http://localhost:5000 にアクセス
+# モックデータで動作確認
 ```
 
 -----
@@ -498,7 +621,7 @@ dotnet run
 
 ## 実装の流れ（推奨順序）
 
-### ステップ1: Infrastructure層
+### ステップ1: Infrastructure層（バックエンド基盤）
 
 1. データベーススキーマ作成（`InitialSchema.sql` — `channel_snapshots` テーブル含む）
 1. エンティティ定義（`Channel.cs`, `Video.cs`, `ChannelSnapshot.cs`）
@@ -508,28 +631,107 @@ dotnet run
 1. `RateLimiter.cs` 実装
 1. `CacheService.cs` 実装
 
-### ステップ2: Domain層
+### ステップ2: Domain層（ビジネスロジック）
 
 1. Enums定義（`GrowthTrend.cs`, `PublishingFrequency.cs`, `ContentStrategy.cs`）
 1. `GrowthJudgementService.cs` 実装
 1. `PublishingPatternService.cs` 実装
 
-### ステップ3: Application層
+### ステップ3: Application層（ユースケース）
 
 1. DTOs定義（`AnalysisResultDto.cs`, `ChannelSnapshotDto.cs`, `TrendGraphDto.cs` 等）
 1. `AnalysisCalculator.cs` 実装
 1. `ChannelAnalysisService.cs` 実装（スナップショット記録・推移データ取得を含む）
 
-### ステップ4: Web層
+### ステップ4: Web層（API）
 
 1. DI設定（`Program.cs`）
-1. 簡易的な実行エントリポイント作成
+1. ChannelAnalysisController 実装（REST API）
+1. エラーハンドリングミドルウェア実装
 
-### ステップ5: テスト・検証
+### ステップ5: フロントエンド（モック）
+
+1. 画面HTML作成（`index.html`）
+1. モックデータ作成（`mock-data.js`）
+1. UI動作確認（静的ファイルとして配信）
+
+### ステップ6: テスト・検証
 
 1. 単体テスト（各Calculator, Serviceのロジック）
 1. 統合テスト（実際のAPI呼び出し）
 1. クォータ消費量の検証
+1. UIモックの動作確認
+
+### ステップ7: API統合（次フェーズ）
+
+1. API通信クライアント実装（`api-client.js`）
+1. モックデータからAPI呼び出しへ切り替え
+1. エラーハンドリング実装
+1. ローディング状態の実装
+
+-----
+
+## API設計（REST API）
+
+### エンドポイント一覧
+
+```
+GET  /api/channels/{channelId}/analysis
+  - チャンネルの分析結果を取得（概要情報）
+
+GET  /api/channels/{channelId}/videos?sortBy={sortBy}&order={order}&period={period}&limit={limit}&page={page}
+  - チャンネルの動画一覧を取得（ソート・フィルタ・ページネーション対応）
+
+GET  /api/channels/{channelId}/statistics?period={period}
+  - チャンネルの統計情報を取得（グラフ用データ）
+```
+
+### レスポンス例
+
+**GET /api/channels/{channelId}/analysis**
+
+```json
+{
+  "channelInfo": {
+    "channelId": "UCZf__ehlCEBPop-_sldpBUQ",
+    "title": "WIRED",
+    "thumbnailUrl": "https://...",
+    "subscriberCount": 10200000,
+    "viewCount": 1200000000,
+    "videoCount": 5432,
+    "publishedAt": "2006-10-21T18:34:25Z"
+  },
+  "growthTrend": "Growing",
+  "growthTrendText": "成長中",
+  "growthReason": "直近30日の平均再生数が全体平均の1.3倍",
+  "publishingFrequency": "High",
+  "publishingFrequencyText": "高頻度（週3本以上）",
+  "contentStrategy": "Stable",
+  "contentStrategyText": "安定型",
+  "contentStrategyReason": "トップ10%動画が全体の42%を占める",
+  "recentStats": {
+    "postCount": 15,
+    "averageViews": 250000,
+    "maxViews": 1200000,
+    "maxViewsVideoId": "abc123",
+    "maxViewsVideoTitle": "How AI Works"
+  }
+}
+```
+
+**エラーレスポンス**
+
+```json
+{
+  "error": {
+    "code": "CHANNEL_NOT_FOUND",
+    "message": "指定されたチャンネルが見つかりませんでした",
+    "details": {
+      "channelId": "invalid_id"
+    }
+  }
+}
+```
 
 -----
 
@@ -583,24 +785,51 @@ dotnet run
 - 原因: Redisが起動していない
 - 対処: `redis-cli ping` で確認、`redis-server` で起動
 
+### フロントエンドエラー
+
+**CORSエラー**
+
+- 原因: APIとフロントエンドのオリジンが異なる
+- 対処: `Program.cs` でCORS設定を追加（開発環境のみ）
+
+**モックデータが表示されない**
+
+- 原因: JavaScriptファイルのパス間違い
+- 対処: ブラウザのDevToolsでコンソールエラーを確認
+
 -----
 
 ## 今後の拡張予定（参考）
 
-今回実装しない機能は、将来以下の順で追加予定：
+### フェーズ2: API統合
 
-1. **動画ランキング機能**（フェーズ2）
+- フロントエンドとバックエンドの接続
+- ローディング・エラーハンドリングの実装
+- 認証・認可機能の追加（オプション）
+
+### フェーズ3: 動画ランキング機能
+
 - 既存の `Video` エンティティ・Repositoryを流用
 - `RankingService` を Application層に追加
-1. **伸び率・初動分析機能**（フェーズ3）
+- ランキングUI画面の追加
+
+### フェーズ4: 伸び率・初動分析機能
+
 - `video_snapshots` テーブル追加
 - 時系列データ取得ロジック追加
-1. **競合比較機能**（フェーズ4）
+- 伸び率グラフUIの追加
+
+### フェーズ5: 競合比較機能
+
 - 複数チャンネル横断集計
 - 既存サービスを流用
-1. **トレンド検知機能**（フェーズ5）
+- 比較UI画面の追加
+
+### フェーズ6: トレンド検知機能
+
 - 異常検知アルゴリズム実装
 - バッチ処理基盤構築
+- トレンド通知UI
 
 -----
 
@@ -615,3 +844,4 @@ MIT License
 - [YouTube Data API v3 公式ドキュメント](https://developers.google.com/youtube/v3)
 - [クォータ管理ガイド](https://developers.google.com/youtube/v3/getting-started#quota)
 - [Google.Apis.YouTube.v3 NuGet](https://www.nuget.org/packages/Google.Apis.YouTube.v3/)
+- [UI設計書](docs/ui-design.md)
