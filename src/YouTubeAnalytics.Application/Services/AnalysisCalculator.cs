@@ -6,11 +6,15 @@ public static class AnalysisCalculator
 {
     public static int CountRecentVideos(IReadOnlyList<Video> videos, int recentDays)
     {
-        throw new NotImplementedException();
+        var cutoff = DateTime.UtcNow.AddDays(-recentDays);
+        return videos.Count(v => v.PublishedAt >= cutoff);
     }
 
     public static double CalculateAverageViewCount(IReadOnlyList<Video> videos)
     {
-        throw new NotImplementedException();
+        if (videos.Count == 0)
+            return 0;
+
+        return videos.Average(v => (double)v.ViewCount);
     }
 }

@@ -9,4 +9,5 @@ public class AnalysisResultDto
     public string GrowthTrend { get; set; } = string.Empty;
     public string PublishingFrequency { get; set; } = string.Empty;
     public string ContentStrategy { get; set; } = string.Empty;
+    public List<ChannelSnapshotDto> Snapshots { get; set; } = new();
 }

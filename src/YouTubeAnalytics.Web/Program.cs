@@ -1,11 +1,61 @@
+using Serilog;
+using YouTubeAnalytics.Application.Interfaces;
+using YouTubeAnalytics.Application.Services;
+using YouTubeAnalytics.Infrastructure.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// TODO: Add Serilog configuration
-// TODO: Add DI registration via DependencyInjection.AddInfrastructure()
-// TODO: Add Application layer service registrations
+// Serilog
+builder.Host.UseSerilog((context, config) =>
+    config.ReadFrom.Configuration(context.Configuration));
+
+// Infrastructure (Repositories, Cache, YouTube API, Domain Services)
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// Application Services
+var recentDaysPeriod = builder.Configuration.GetValue<int>("AnalysisConfig:RecentDaysPeriod", 30);
+builder.Services.AddScoped<IChannelAnalysisService>(sp =>
+    new ChannelAnalysisService(
+        sp.GetRequiredService<IYouTubeApiClient>(),
+        sp.GetRequiredService<ICacheService>(),
+        sp.GetRequiredService<YouTubeAnalytics.Domain.Repositories.IChannelRepository>(),
+        sp.GetRequiredService<YouTubeAnalytics.Domain.Repositories.IVideoRepository>(),
+        sp.GetRequiredService<YouTubeAnalytics.Domain.Repositories.IChannelSnapshotRepository>(),
+        sp.GetRequiredService<YouTubeAnalytics.Domain.Services.GrowthJudgementService>(),
+        sp.GetRequiredService<YouTubeAnalytics.Domain.Services.PublishingPatternService>(),
+        sp.GetRequiredService<ILogger<ChannelAnalysisService>>(),
+        recentDaysPeriod));
 
 var app = builder.Build();
 
 app.MapGet("/", () => "YouTube Analytics Tool");
+
+app.MapGet("/api/channels/{channelId}/analysis", async (
+    string channelId,
+    IChannelAnalysisService analysisService,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var result = await analysisService.AnalyzeChannelAsync(channelId, cancellationToken);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("quota"))
+    {
+        return Results.StatusCode(429);
+    }
+});
+
+app.MapGet("/api/quota", async (
+    YouTubeAnalytics.Infrastructure.YouTube.QuotaManager quotaManager,
+    CancellationToken cancellationToken) =>
+{
+    var remaining = await quotaManager.GetRemainingQuotaAsync(cancellationToken);
+    return Results.Ok(new { remaining, limit = 10000 });
+});
 
 app.Run();

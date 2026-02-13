@@ -22,3 +22,15 @@ CREATE TABLE IF NOT EXISTS videos (
 
 CREATE INDEX IF NOT EXISTS idx_videos_channel_id ON videos(channel_id);
 CREATE INDEX IF NOT EXISTS idx_videos_published_at ON videos(published_at);
+
+CREATE TABLE IF NOT EXISTS channel_snapshots (
+    id BIGSERIAL PRIMARY KEY,
+    channel_id VARCHAR(50) NOT NULL REFERENCES channels(channel_id),
+    subscriber_count BIGINT NOT NULL DEFAULT 0,
+    total_view_count BIGINT NOT NULL DEFAULT 0,
+    recorded_at DATE NOT NULL DEFAULT CURRENT_DATE,
+    UNIQUE (channel_id, recorded_at)
+);
+
+CREATE INDEX IF NOT EXISTS idx_channel_snapshots_channel_id ON channel_snapshots(channel_id);
+CREATE INDEX IF NOT EXISTS idx_channel_snapshots_recorded_at ON channel_snapshots(recorded_at);
