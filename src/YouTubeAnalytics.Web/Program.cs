@@ -46,7 +46,9 @@ app.MapGet("/api/channels/{channelId}/analysis", async (
     }
     catch (InvalidOperationException ex) when (ex.Message.Contains("quota"))
     {
-        return Results.StatusCode(429);
+        return Results.Json(
+            new { error = "YouTube APIの日次クォータ上限に達しました。太平洋時間の午前0時にリセットされます。" },
+            statusCode: 429);
     }
 });
 
