@@ -12,12 +12,14 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
     <PackageReference Include="xunit" Version="2.*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.*" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\YouTubeAnalytics.Application\YouTubeAnalytics.Application.csproj" />
     <ProjectReference Include="..\..\src\YouTubeAnalytics.Domain\YouTubeAnalytics.Domain.csproj" />
     <ProjectReference Include="..\..\src\YouTubeAnalytics.Infrastructure\YouTubeAnalytics.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\YouTubeAnalytics.Web\YouTubeAnalytics.Web.csproj" />
   </ItemGroup>
 
 </Project>

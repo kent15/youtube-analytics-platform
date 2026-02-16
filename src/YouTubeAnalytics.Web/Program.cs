@@ -10,7 +10,10 @@ builder.Host.UseSerilog((context, config) =>
     config.ReadFrom.Configuration(context.Configuration));
 
 // Infrastructure (Repositories, Cache, YouTube API, Domain Services)
-builder.Services.AddInfrastructure(builder.Configuration);
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddInfrastructure(builder.Configuration);
+}
 
 // Application Services
 var recentDaysPeriod = builder.Configuration.GetValue<int>("AnalysisConfig:RecentDaysPeriod", 30);
@@ -61,3 +64,5 @@ app.MapGet("/api/quota", async (
 });
 
 app.Run();
+
+public partial class Program { }
