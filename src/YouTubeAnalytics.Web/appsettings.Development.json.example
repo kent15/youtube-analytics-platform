@@ -3,7 +3,7 @@
     "ApiKey": "YOUR_DEVELOPMENT_API_KEY_HERE"
   },
   "DatabaseConfig": {
-    "ConnectionString": "Host=localhost;Database=youtube_analysis_dev;Username=postgres;Password=yourpassword"
+    "ConnectionString": "Host=localhost;Database=youtube_analysis_dev;Username=postgres;Password=YOUR_PASSWORD_HERE"
   },
   "Serilog": {
     "MinimumLevel": "Debug"

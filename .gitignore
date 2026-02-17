@@ -29,5 +29,12 @@ x86/
 .DS_Store
 Thumbs.db
 
+## Secrets / local settings
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.Production.json
+*.env
+.env*
+
 ## Docker build files
 Dockerfile.build
