@@ -15,9 +15,9 @@ public class ApiEndpointTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task GetRoot_ReturnsOkWithHealthCheckMessage()
+    public async Task GetHealth_ReturnsOkWithHealthCheckMessage()
     {
-        var response = await _client.GetAsync("/");
+        var response = await _client.GetAsync("/api/health");
 
         response.EnsureSuccessStatusCode();
         var body = await response.Content.ReadAsStringAsync();

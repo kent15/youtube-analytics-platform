@@ -31,7 +31,10 @@ builder.Services.AddScoped<IChannelAnalysisService>(sp =>
 
 var app = builder.Build();
 
-app.MapGet("/", () => "YouTube Analytics Tool");
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+app.MapGet("/api/health", () => "YouTube Analytics Tool");
 
 app.MapGet("/api/channels/{channelId}/analysis", async (
     string channelId,
