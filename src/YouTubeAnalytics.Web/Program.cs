@@ -35,9 +35,10 @@ app.MapGet("/", () => "YouTube Analytics Tool");
 
 app.MapGet("/api/channels/{channelId}/analysis", async (
     string channelId,
-    IChannelAnalysisService analysisService,
-    CancellationToken cancellationToken) =>
+    HttpContext context) =>
 {
+    var analysisService = context.RequestServices.GetRequiredService<IChannelAnalysisService>();
+    var cancellationToken = context.RequestAborted;
     try
     {
         var result = await analysisService.AnalyzeChannelAsync(channelId, cancellationToken);
@@ -55,10 +56,10 @@ app.MapGet("/api/channels/{channelId}/analysis", async (
     }
 });
 
-app.MapGet("/api/quota", async (
-    YouTubeAnalytics.Infrastructure.YouTube.QuotaManager quotaManager,
-    CancellationToken cancellationToken) =>
+app.MapGet("/api/quota", async (HttpContext context) =>
 {
+    var quotaManager = context.RequestServices.GetRequiredService<YouTubeAnalytics.Infrastructure.YouTube.QuotaManager>();
+    var cancellationToken = context.RequestAborted;
     var remaining = await quotaManager.GetRemainingQuotaAsync(cancellationToken);
     return Results.Ok(new { remaining, limit = 10000 });
 });
