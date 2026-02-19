@@ -739,9 +739,9 @@ GET  /api/channels/{channelId}/statistics?period={period}
 
 実装・検証時に使用できる公開チャンネルIDの例：
 
-- `UCZf__ehlCEBPop-_sldpBUQ`: WIRED（英語、テック系）
+- `UCftwRNsjfRo08xYE31tkiyw`: WIRED（英語、テック系）
 - `UC_x5XG1OV2P6uZZ5FSM9Ttw`: Google Developers（公式、英語）
-- `UCm7zKBNZwzjNv-lbcDkTU4Q`: HikakinTV（日本語、大規模チャンネル）
+- `UCZf__ehlCEBPop-_sldpBUQ`: HikakinTV（日本語、大規模チャンネル）
 
 **注意**: テスト時もクォータを消費するため、無駄な呼び出しは避ける
 

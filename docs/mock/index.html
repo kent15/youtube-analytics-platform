@@ -661,7 +661,7 @@
             type="text"
             class="search-input"
             id="channelInput"
-            placeholder="チャンネルID（例: UCm7zKBNZwzjNv-lbcDkTU4Q）"
+            placeholder="チャンネルID（例: UCZf__ehlCEBPop-_sldpBUQ）"
             spellcheck="false"
           >
           <button class="btn btn-primary" onclick="startAnalysis()">
@@ -674,9 +674,9 @@
 
         <div class="sample-channels">
           <span style="font-size:13px;color:var(--text-secondary);margin-right:4px;">サンプル:</span>
-          <button class="sample-chip" onclick="fillChannel('UCZf__ehlCEBPop-_sldpBUQ', 'WIRED')">WIRED</button>
+          <button class="sample-chip" onclick="fillChannel('UCftwRNsjfRo08xYE31tkiyw', 'WIRED')">WIRED</button>
           <button class="sample-chip" onclick="fillChannel('UC_x5XG1OV2P6uZZ5FSM9Ttw', 'Google Developers')">Google Developers</button>
-          <button class="sample-chip" onclick="fillChannel('UCm7zKBNZwzjNv-lbcDkTU4Q', 'HikakinTV')">HikakinTV</button>
+          <button class="sample-chip" onclick="fillChannel('UCZf__ehlCEBPop-_sldpBUQ', 'HikakinTV')">HikakinTV</button>
         </div>
       </div>
     </section>
@@ -718,7 +718,7 @@
           <div class="channel-avatar" id="resultAvatar">H</div>
           <div>
             <div class="channel-name" id="resultName">HikakinTV</div>
-            <div class="channel-id" id="resultId">UCm7zKBNZwzjNv-lbcDkTU4Q</div>
+            <div class="channel-id" id="resultId">UCZf__ehlCEBPop-_sldpBUQ</div>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
@@ -888,7 +888,7 @@
   <script>
     /* ===== Mock Data ===== */
     const MOCK_CHANNELS = {
-      'UCm7zKBNZwzjNv-lbcDkTU4Q': {
+      'UCZf__ehlCEBPop-_sldpBUQ': {
         name: 'HikakinTV',
         avatar: 'H',
         subs: '11,200,000',
@@ -911,7 +911,7 @@
           { title: '2026年買ってよかったモノTOP10', date: '2026-01-27', views: '2,100,000', likes: '95,400', comments: '5,630' },
         ]
       },
-      'UCZf__ehlCEBPop-_sldpBUQ': {
+      'UCftwRNsjfRo08xYE31tkiyw': {
         name: 'WIRED',
         avatar: 'W',
         subs: '15,400,000',
@@ -973,9 +973,9 @@
     }
 
     // Pre-generate 90-day snapshots for each channel
-    MOCK_CHANNELS['UCm7zKBNZwzjNv-lbcDkTU4Q'].snapshots =
-      generateSnapshots(11200000, 12846320000, 90, 'growing');
     MOCK_CHANNELS['UCZf__ehlCEBPop-_sldpBUQ'].snapshots =
+      generateSnapshots(11200000, 12846320000, 90, 'growing');
+    MOCK_CHANNELS['UCftwRNsjfRo08xYE31tkiyw'].snapshots =
       generateSnapshots(15400000, 5230100000, 90, 'stable');
     MOCK_CHANNELS['UC_x5XG1OV2P6uZZ5FSM9Ttw'].snapshots =
       generateSnapshots(2400000, 312500000, 90, 'declining');
