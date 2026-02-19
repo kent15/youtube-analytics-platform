@@ -546,6 +546,184 @@
       .graph-section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
     }
 
+    /* ===== Ranking Screen ===== */
+    .ranking-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .ranking-header h2 {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .ranking-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .ranking-select {
+      padding: 8px 14px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+
+    .ranking-select:focus { border-color: var(--primary); }
+
+    .ranking-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .ranking-stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .ranking-stat-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .ranking-stat-value {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .ranking-table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .ranking-table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ranking-table-title { font-size: 16px; font-weight: 700; }
+    .ranking-table-count { font-size: 13px; color: var(--text-secondary); }
+
+    .rank-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--bg);
+      color: var(--text-secondary);
+    }
+
+    .rank-num.gold   { background: #fef3c7; color: #92400e; }
+    .rank-num.silver { background: #f1f5f9; color: #475569; }
+    .rank-num.bronze { background: #fed7aa; color: #9a3412; }
+
+    .video-info-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 400px;
+    }
+
+    .video-thumbnail {
+      width: 80px;
+      height: 45px;
+      border-radius: 6px;
+      background: var(--border);
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+
+    .video-meta {
+      overflow: hidden;
+    }
+
+    .video-meta-title {
+      font-weight: 600;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+    }
+
+    .video-meta-channel {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .engagement-bar {
+      width: 60px;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+
+    .engagement-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--primary);
+    }
+
+    .ranking-empty {
+      text-align: center;
+      padding: 80px 0;
+      color: var(--text-secondary);
+    }
+
+    .ranking-empty-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .ranking-stats { grid-template-columns: repeat(2, 1fr); }
+      .ranking-controls { width: 100%; }
+      .video-info-cell { max-width: 200px; }
+      .video-thumbnail { display: none; }
+    }
+
     /* ===== Responsive ===== */
     @media (max-width: 640px) {
       .header { padding: 12px 16px; }
@@ -576,7 +754,7 @@
       <button class="nav-item active" id="nav-analysis" onclick="showScreen('search')">
         チャンネル分析
       </button>
-      <button class="nav-item disabled" title="フェーズ2で実装予定">
+      <button class="nav-item" id="nav-ranking" onclick="showScreen('ranking')">
         動画ランキング
       </button>
       <button class="nav-item disabled" title="フェーズ3で実装予定">
@@ -807,6 +985,72 @@
       </div>
     </section>
 
+    <!-- ===== Screen: Ranking ===== -->
+    <section class="screen" id="screen-ranking">
+
+      <div class="ranking-header">
+        <h2>動画ランキング</h2>
+        <div class="ranking-controls">
+          <select class="ranking-select" id="rankingSortBy" onchange="renderRankingMock()">
+            <option value="viewCount">再生数順</option>
+            <option value="likeCount">高評価数順</option>
+            <option value="commentCount">コメント数順</option>
+            <option value="likeRate">高評価率順</option>
+          </select>
+          <select class="ranking-select" id="rankingPeriod" onchange="renderRankingMock()">
+            <option value="7">直近7日</option>
+            <option value="30" selected>直近30日</option>
+            <option value="90">直近90日</option>
+            <option value="0">全期間</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Summary stats -->
+      <div class="ranking-stats">
+        <div class="ranking-stat-card">
+          <div class="ranking-stat-label">対象動画数</div>
+          <div class="ranking-stat-value" id="rankingTotalVideos">--</div>
+        </div>
+        <div class="ranking-stat-card">
+          <div class="ranking-stat-label">合計再生数</div>
+          <div class="ranking-stat-value" id="rankingTotalViews">--</div>
+        </div>
+        <div class="ranking-stat-card">
+          <div class="ranking-stat-label">平均再生数</div>
+          <div class="ranking-stat-value" id="rankingAvgViews">--</div>
+        </div>
+        <div class="ranking-stat-card">
+          <div class="ranking-stat-label">平均高評価率</div>
+          <div class="ranking-stat-value" id="rankingAvgLikeRate">--</div>
+        </div>
+      </div>
+
+      <!-- Ranking table -->
+      <div class="ranking-table-container">
+        <div class="ranking-table-header">
+          <span class="ranking-table-title">ランキング</span>
+          <span class="ranking-table-count" id="rankingCountLabel"></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50px">順位</th>
+              <th>動画</th>
+              <th>公開日</th>
+              <th class="num">再生数</th>
+              <th class="num">高評価</th>
+              <th class="num">コメント</th>
+              <th class="num">高評価率</th>
+            </tr>
+          </thead>
+          <tbody id="rankingTableBody">
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
     <!-- ===== Screen: Error ===== -->
     <section class="screen" id="screen-error">
       <div class="error-container">
@@ -857,6 +1101,15 @@
       if (name === 'search' && analysisAbortController) {
         analysisAbortController.abort();
         analysisAbortController = null;
+      }
+
+      // Update nav active state
+      document.querySelectorAll('.header-nav .nav-item').forEach(n => n.classList.remove('active'));
+      if (name === 'search' || name === 'loading' || name === 'result' || name === 'error') {
+        document.getElementById('nav-analysis').classList.add('active');
+      } else if (name === 'ranking') {
+        document.getElementById('nav-ranking').classList.add('active');
+        renderRankingMock();
       }
     }
 
@@ -1179,6 +1432,90 @@
     document.getElementById('channelInput').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') startAnalysis();
     });
+
+    /* ===== Ranking Mock Data ===== */
+    var rankingMockData = [
+      { videoId: 'mock001', title: '【驚愕】AIが変える未来のプログラミング', channelName: 'TechChannel', publishedAt: '2026-02-15T10:00:00Z', viewCount: 1520000, likeCount: 85200, commentCount: 4320 },
+      { videoId: 'mock002', title: '初心者向け！Python完全入門ガイド 2026年版', channelName: 'CodeAcademy JP', publishedAt: '2026-02-12T08:00:00Z', viewCount: 980000, likeCount: 62100, commentCount: 3150 },
+      { videoId: 'mock003', title: '【検証】最新GPUでゲーム性能はどこまで変わる？', channelName: 'PC Lab', publishedAt: '2026-02-10T12:00:00Z', viewCount: 870000, likeCount: 41500, commentCount: 2890 },
+      { videoId: 'mock004', title: 'React vs Vue vs Svelte 完全比較【2026年最新版】', channelName: 'TechChannel', publishedAt: '2026-02-08T09:00:00Z', viewCount: 745000, likeCount: 38900, commentCount: 5670 },
+      { videoId: 'mock005', title: 'プロが教えるGit & GitHub超実践テクニック', channelName: 'DevMaster', publishedAt: '2026-02-05T11:00:00Z', viewCount: 620000, likeCount: 35200, commentCount: 1980 },
+      { videoId: 'mock006', title: 'Docker入門 - コンテナ技術をゼロから理解する', channelName: 'CodeAcademy JP', publishedAt: '2026-02-03T14:00:00Z', viewCount: 510000, likeCount: 28700, commentCount: 1540 },
+      { videoId: 'mock007', title: '【年収公開】エンジニア転職の現実を語ります', channelName: 'CareerTech', publishedAt: '2026-01-28T10:00:00Z', viewCount: 480000, likeCount: 22100, commentCount: 8920 },
+      { videoId: 'mock008', title: 'TypeScript 5.8 新機能まとめ＆実演', channelName: 'TechChannel', publishedAt: '2026-01-25T08:00:00Z', viewCount: 390000, likeCount: 24600, commentCount: 1230 },
+      { videoId: 'mock009', title: 'AWS Lambda実践 - サーバーレスでコスト90%削減', channelName: 'CloudNinja', publishedAt: '2026-01-22T09:00:00Z', viewCount: 345000, likeCount: 19800, commentCount: 980 },
+      { videoId: 'mock010', title: '【LIVE】視聴者と一緒にWebアプリを作ろう', channelName: 'DevMaster', publishedAt: '2026-01-20T19:00:00Z', viewCount: 280000, likeCount: 18200, commentCount: 12400 },
+    ];
+
+    function renderRankingMock() {
+      var sortBy = document.getElementById('rankingSortBy').value;
+      var period = parseInt(document.getElementById('rankingPeriod').value);
+
+      var now = new Date();
+      var filtered = rankingMockData;
+      if (period > 0) {
+        var cutoff = new Date(now.getTime() - period * 24 * 60 * 60 * 1000);
+        filtered = rankingMockData.filter(function(v) { return new Date(v.publishedAt) >= cutoff; });
+      }
+
+      // Sort
+      filtered = filtered.slice().sort(function(a, b) {
+        if (sortBy === 'likeRate') {
+          var rateA = a.viewCount > 0 ? a.likeCount / a.viewCount : 0;
+          var rateB = b.viewCount > 0 ? b.likeCount / b.viewCount : 0;
+          return rateB - rateA;
+        }
+        return b[sortBy] - a[sortBy];
+      });
+
+      // Stats
+      var totalViews = filtered.reduce(function(s, v) { return s + v.viewCount; }, 0);
+      var totalLikes = filtered.reduce(function(s, v) { return s + v.likeCount; }, 0);
+      var avgViews = filtered.length > 0 ? Math.round(totalViews / filtered.length) : 0;
+      var avgLikeRate = totalViews > 0 ? ((totalLikes / totalViews) * 100).toFixed(1) : '0.0';
+
+      document.getElementById('rankingTotalVideos').textContent = formatNumber(filtered.length);
+      document.getElementById('rankingTotalViews').textContent = formatNumber(totalViews);
+      document.getElementById('rankingAvgViews').textContent = formatNumber(avgViews);
+      document.getElementById('rankingAvgLikeRate').textContent = avgLikeRate + '%';
+      document.getElementById('rankingCountLabel').textContent = filtered.length + '件（モックデータ）';
+
+      // Find max like rate for bar
+      var maxLikeRate = 0;
+      filtered.forEach(function(v) {
+        var r = v.viewCount > 0 ? v.likeCount / v.viewCount : 0;
+        if (r > maxLikeRate) maxLikeRate = r;
+      });
+
+      // Table
+      var tbody = document.getElementById('rankingTableBody');
+      tbody.innerHTML = '';
+      filtered.forEach(function(v, i) {
+        var tr = document.createElement('tr');
+        var rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+        var dateStr = v.publishedAt ? v.publishedAt.substring(0, 10) : '';
+        var likeRate = v.viewCount > 0 ? ((v.likeCount / v.viewCount) * 100).toFixed(1) : '0.0';
+        var barPct = maxLikeRate > 0 ? Math.round(((v.likeCount / v.viewCount) / maxLikeRate) * 100) : 0;
+
+        tr.innerHTML =
+          '<td><span class="rank-num ' + rankClass + '">' + (i + 1) + '</span></td>' +
+          '<td><div class="video-info-cell">' +
+            '<div class="video-thumbnail"></div>' +
+            '<div class="video-meta">' +
+              '<span class="video-meta-title">' + escapeHtml(v.title) + '</span>' +
+              '<span class="video-meta-channel">' + escapeHtml(v.channelName) + '</span>' +
+            '</div>' +
+          '</div></td>' +
+          '<td class="video-date">' + dateStr + '</td>' +
+          '<td class="num">' + formatNumber(v.viewCount) + '</td>' +
+          '<td class="num">' + formatNumber(v.likeCount) + '</td>' +
+          '<td class="num">' + formatNumber(v.commentCount) + '</td>' +
+          '<td class="num">' + likeRate + '%' +
+            '<div class="engagement-bar"><div class="engagement-fill" style="width:' + barPct + '%"></div></div>' +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+    }
 
     /* ===== Initial quota load ===== */
     updateQuota();
