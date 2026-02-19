@@ -17,6 +17,10 @@ if (!builder.Environment.IsEnvironment("Testing"))
 
 // Application Services
 var recentDaysPeriod = builder.Configuration.GetValue<int>("AnalysisConfig:RecentDaysPeriod", 30);
+builder.Services.AddScoped<IVideoRankingService>(sp =>
+    new VideoRankingService(
+        sp.GetRequiredService<YouTubeAnalytics.Domain.Repositories.IVideoRepository>()));
+
 builder.Services.AddScoped<IChannelAnalysisService>(sp =>
     new ChannelAnalysisService(
         sp.GetRequiredService<IYouTubeApiClient>(),
@@ -57,6 +61,22 @@ app.MapGet("/api/channels/{channelId}/analysis", async (
             new { error = "YouTube APIの日次クォータ上限に達しました。太平洋時間の午前0時にリセットされます。" },
             statusCode: 429);
     }
+});
+
+app.MapGet("/api/videos/ranking", async (
+    HttpContext context,
+    string? sortBy,
+    int? period,
+    int? limit) =>
+{
+    var rankingService = context.RequestServices.GetRequiredService<IVideoRankingService>();
+    var cancellationToken = context.RequestAborted;
+    var result = await rankingService.GetRankingAsync(
+        sortBy ?? "viewCount",
+        period ?? 30,
+        limit ?? 50,
+        cancellationToken);
+    return Results.Ok(result);
 });
 
 app.MapGet("/api/quota", async (HttpContext context) =>

@@ -15,6 +15,12 @@ public class StubVideoRepository : IVideoRepository
         return Task.FromResult<IReadOnlyList<Video>>(Array.Empty<Video>());
     }
 
+    public Task<IReadOnlyList<Video>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var all = _videos.Values.SelectMany(v => v).ToList();
+        return Task.FromResult<IReadOnlyList<Video>>(all);
+    }
+
     public Task SaveManyAsync(IEnumerable<Video> videos, CancellationToken cancellationToken = default)
     {
         foreach (var video in videos)

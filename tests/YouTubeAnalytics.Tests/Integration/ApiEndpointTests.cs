@@ -78,4 +78,57 @@ public class ApiEndpointTests : IClassFixture<TestWebApplicationFactory>
         var json = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.True(json.TryGetProperty("error", out _));
     }
+
+    [Fact]
+    public async Task GetVideoRanking_DefaultParams_ReturnsOkWithRankingResult()
+    {
+        // まず分析を実行してDBにデータを投入
+        await _client.GetAsync("/api/channels/UC_test/analysis");
+
+        var response = await _client.GetAsync("/api/videos/ranking");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.True(json.TryGetProperty("totalCount", out var totalCount));
+        Assert.True(totalCount.GetInt32() > 0);
+        Assert.True(json.TryGetProperty("totalViewCount", out _));
+        Assert.True(json.TryGetProperty("averageViewCount", out _));
+        Assert.True(json.TryGetProperty("averageLikeRate", out _));
+
+        var items = json.GetProperty("items");
+        Assert.True(items.GetArrayLength() > 0);
+
+        var first = items[0];
+        Assert.Equal(1, first.GetProperty("rank").GetInt32());
+        Assert.True(first.TryGetProperty("videoId", out _));
+        Assert.True(first.TryGetProperty("title", out _));
+        Assert.True(first.TryGetProperty("viewCount", out _));
+        Assert.True(first.TryGetProperty("likeRate", out _));
+    }
+
+    [Fact]
+    public async Task GetVideoRanking_SortByLikeCount_ReturnsSortedResult()
+    {
+        await _client.GetAsync("/api/channels/UC_test/analysis");
+
+        var response = await _client.GetAsync("/api/videos/ranking?sortBy=likeCount&period=0");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var items = json.GetProperty("items");
+        Assert.True(items.GetArrayLength() > 0);
+    }
+
+    [Fact]
+    public async Task GetVideoRanking_WithPeriodFilter_ReturnsFilteredResult()
+    {
+        await _client.GetAsync("/api/channels/UC_test/analysis");
+
+        var response = await _client.GetAsync("/api/videos/ranking?period=7");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(json.TryGetProperty("totalCount", out _));
+    }
 }

@@ -33,6 +33,24 @@ public class VideoRepository : IVideoRepository
             r.comment_count)).ToList();
     }
 
+    public async Task<IReadOnlyList<Video>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        var rows = await connection.QueryAsync<VideoRow>(
+            @"SELECT video_id, channel_id, title, published_at, view_count, like_count, comment_count
+              FROM videos
+              ORDER BY published_at DESC");
+
+        return rows.Select(r => new Video(
+            r.video_id,
+            r.channel_id,
+            r.title,
+            r.published_at,
+            r.view_count,
+            r.like_count,
+            r.comment_count)).ToList();
+    }
+
     public async Task SaveManyAsync(IEnumerable<Video> videos, CancellationToken cancellationToken = default)
     {
         await using var connection = new NpgsqlConnection(_connectionString);
