@@ -600,6 +600,217 @@
       .graph-section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
     }
 
+    /* ===== Tracking CTA ===== */
+    .tracking-cta {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 48px 32px;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .tracking-cta-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .tracking-cta-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .tracking-cta-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      max-width: 480px;
+      margin: 0 auto 24px;
+      line-height: 1.6;
+    }
+
+    .btn-tracking {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-tracking:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+
+    /* ===== Settings Screen ===== */
+    .settings-container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .settings-header {
+      margin-bottom: 32px;
+    }
+
+    .settings-header h2 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .settings-header p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .settings-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .settings-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-card-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .settings-add-form {
+      display: flex;
+      gap: 8px;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: #f8fafc;
+    }
+
+    .settings-add-form input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      background: var(--surface);
+    }
+
+    .settings-add-form input:focus { border-color: var(--primary); }
+
+    .btn-add {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .btn-add:hover { background: var(--primary-hover); }
+
+    .settings-list { list-style: none; }
+
+    .settings-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      transition: background .1s;
+    }
+
+    .settings-list-item:last-child { border-bottom: none; }
+    .settings-list-item:hover { background: #f8fafc; }
+
+    .settings-channel-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .settings-channel-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #a78bfa);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .settings-channel-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .settings-channel-id {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: monospace;
+    }
+
+    .btn-remove {
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--danger);
+      transition: all .15s;
+    }
+
+    .btn-remove:hover { background: #fee2e2; border-color: var(--danger); }
+
+    .settings-empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .settings-note {
+      margin-top: 24px;
+      padding: 16px 20px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: #1e40af;
+      line-height: 1.6;
+    }
+
+    .settings-note-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
     /* ===== Responsive ===== */
     @media (max-width: 640px) {
       .header { padding: 12px 16px; }
@@ -632,6 +843,9 @@
       </button>
       <button class="nav-item disabled" title="フェーズ2で実装予定">
         動画ランキング
+      </button>
+      <button class="nav-item" id="nav-settings" onclick="showScreen('settings')">
+        トラッキング設定
       </button>
       <button class="nav-item disabled" title="フェーズ3で実装予定">
         伸び率分析
@@ -844,6 +1058,26 @@
         </div>
       </div>
 
+      <!-- Tracking CTA (shown when channel is NOT in batch config) -->
+      <div class="tracking-cta" id="trackingCta" style="display:none;">
+        <div class="tracking-cta-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--primary)">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+          </svg>
+        </div>
+        <div class="tracking-cta-title">このチャンネルはトラッキング対象に登録されていません</div>
+        <div class="tracking-cta-desc">
+          推移グラフを表示するには、日次バッチによるデータ蓄積が必要です。<br>
+          トラッキング設定画面でこのチャンネルを登録すると、翌日以降データが蓄積され、推移グラフが表示されるようになります。
+        </div>
+        <button class="btn-tracking" onclick="goToSettingsWithChannel()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.611 3.611 0 0112 15.6z"/>
+          </svg>
+          トラッキング設定画面へ
+        </button>
+      </div>
+
       <!-- Video list table -->
       <div class="table-container">
         <div class="table-header">
@@ -867,6 +1101,39 @@
       </div>
     </section>
 
+    <!-- ===== Screen: Settings ===== -->
+    <section class="screen" id="screen-settings">
+      <div class="settings-container">
+        <div class="settings-header">
+          <h2>トラッキング設定</h2>
+          <p>日次バッチで自動取得するチャンネルを管理します。登録されたチャンネルは毎日データが蓄積され、推移グラフが表示されるようになります。</p>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-title">トラッキング対象チャンネル</span>
+            <span style="font-size:13px;color:var(--text-secondary);" id="settingsCount">0件</span>
+          </div>
+
+          <div class="settings-add-form">
+            <input type="text" id="settingsChannelIdInput" placeholder="チャンネルID（例: UCxxxxxxxxxxxxxxxxxxxxxx）" spellcheck="false">
+            <input type="text" id="settingsChannelLabelInput" placeholder="ラベル（任意）" style="max-width:160px;">
+            <button class="btn-add" onclick="addTrackingChannel()">追加</button>
+          </div>
+
+          <ul class="settings-list" id="settingsList">
+          </ul>
+        </div>
+
+        <div class="settings-note">
+          <div class="settings-note-title">設定について</div>
+          この設定は <code>appsettings.json</code> の <code>BatchConfig.Channels</code> に対応します。<br>
+          バッチは毎日指定時刻（デフォルト: AM 3:00）に自動実行され、各チャンネルのスナップショットを記録します。<br>
+          データの蓄積が2日以上になると、分析画面で推移グラフが表示されます。
+        </div>
+      </div>
+    </section>
+
     <!-- ===== Screen: Error ===== -->
     <section class="screen" id="screen-error">
       <div class="error-container">
@@ -886,6 +1153,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script>
+    /* ===== Mock Batch Config (tracked channels) ===== */
+    let MOCK_BATCH_CONFIG = [
+      { channelId: 'UCZf__ehlCEBPop-_sldpBUQ', label: 'HikakinTV' }
+    ];
+
+    function isTracked(channelId) {
+      return MOCK_BATCH_CONFIG.some(c => c.channelId === channelId);
+    }
+
     /* ===== Mock Data ===== */
     const MOCK_CHANNELS = {
       'UCZf__ehlCEBPop-_sldpBUQ': {
@@ -986,10 +1262,22 @@
     let currentChannelData = null;
     let currentPeriod = 30;
 
+    /* ===== Current analysis channel (for CTA -> settings) ===== */
+    let currentAnalysisChannelId = '';
+
     /* ===== Screen Management ===== */
     function showScreen(name) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-' + name).classList.add('active');
+
+      // Update nav active state
+      document.querySelectorAll('.header-nav .nav-item:not(.disabled)').forEach(n => n.classList.remove('active'));
+      if (name === 'search' || name === 'loading' || name === 'result' || name === 'error') {
+        document.getElementById('nav-analysis').classList.add('active');
+      } else if (name === 'settings') {
+        document.getElementById('nav-settings').classList.add('active');
+        renderSettingsList();
+      }
     }
 
     /* ===== Fill Channel ===== */
@@ -1007,6 +1295,7 @@
       }
 
       const data = MOCK_CHANNELS[channelId];
+      currentAnalysisChannelId = channelId;
 
       // Show loading
       showScreen('loading');
@@ -1073,13 +1362,24 @@
         card.querySelector('.judgement-desc').textContent = jData[i].desc;
       });
 
-      // Charts
+      // Charts: show only for tracked channels
+      const graphSection = document.querySelector('.graph-section');
+      const trackingCta = document.getElementById('trackingCta');
       currentChannelData = data;
-      currentPeriod = 30;
-      document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
-      document.querySelector('.period-tab[data-days="30"]').classList.add('active');
-      // Delay chart render to ensure canvas is visible
-      setTimeout(() => renderCharts(data, 30), 50);
+
+      if (isTracked(channelId)) {
+        // Channel is tracked -> show graph, hide CTA
+        graphSection.style.display = '';
+        trackingCta.style.display = 'none';
+        currentPeriod = 30;
+        document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector('.period-tab[data-days="30"]').classList.add('active');
+        setTimeout(() => renderCharts(data, 30), 50);
+      } else {
+        // Channel is NOT tracked -> hide graph, show CTA
+        graphSection.style.display = 'none';
+        trackingCta.style.display = '';
+      }
 
       // Video table
       const tbody = document.getElementById('videoTableBody');
@@ -1234,6 +1534,82 @@
     /* ===== Enter key support ===== */
     document.getElementById('channelInput').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') startAnalysis();
+    });
+
+    /* ===== Settings: Navigate from CTA ===== */
+    function goToSettingsWithChannel() {
+      // Pre-fill the channel ID input on settings page
+      document.getElementById('settingsChannelIdInput').value = currentAnalysisChannelId;
+      // Try to find a label from mock data
+      const ch = MOCK_CHANNELS[currentAnalysisChannelId];
+      document.getElementById('settingsChannelLabelInput').value = ch ? ch.name : '';
+      showScreen('settings');
+    }
+
+    /* ===== Settings: Render list ===== */
+    function renderSettingsList() {
+      const list = document.getElementById('settingsList');
+      const count = document.getElementById('settingsCount');
+      count.textContent = MOCK_BATCH_CONFIG.length + '件';
+
+      if (MOCK_BATCH_CONFIG.length === 0) {
+        list.innerHTML = '<li class="settings-empty">トラッキング対象のチャンネルが登録されていません。</li>';
+        return;
+      }
+
+      list.innerHTML = '';
+      MOCK_BATCH_CONFIG.forEach((ch, i) => {
+        const li = document.createElement('li');
+        li.className = 'settings-list-item';
+        const initial = ch.label ? ch.label.charAt(0).toUpperCase() : ch.channelId.charAt(0);
+        li.innerHTML =
+          '<div class="settings-channel-info">' +
+            '<div class="settings-channel-avatar">' + escapeHtml(initial) + '</div>' +
+            '<div>' +
+              '<div class="settings-channel-name">' + escapeHtml(ch.label || '(ラベルなし)') + '</div>' +
+              '<div class="settings-channel-id">' + escapeHtml(ch.channelId) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<button class="btn-remove" onclick="removeTrackingChannel(' + i + ')">削除</button>';
+        list.appendChild(li);
+      });
+    }
+
+    /* ===== Settings: Add channel ===== */
+    function addTrackingChannel() {
+      const idInput = document.getElementById('settingsChannelIdInput');
+      const labelInput = document.getElementById('settingsChannelLabelInput');
+      const channelId = idInput.value.trim();
+      const label = labelInput.value.trim();
+
+      if (!channelId) {
+        showToast('チャンネルIDを入力してください');
+        return;
+      }
+
+      if (isTracked(channelId)) {
+        showToast('このチャンネルは既に登録されています');
+        return;
+      }
+
+      MOCK_BATCH_CONFIG.push({ channelId: channelId, label: label || channelId });
+      idInput.value = '';
+      labelInput.value = '';
+      renderSettingsList();
+      showToast('チャンネルを登録しました');
+    }
+
+    /* ===== Settings: Remove channel ===== */
+    function removeTrackingChannel(index) {
+      const ch = MOCK_BATCH_CONFIG[index];
+      MOCK_BATCH_CONFIG.splice(index, 1);
+      renderSettingsList();
+      showToast((ch.label || ch.channelId) + ' を削除しました');
+    }
+
+    /* ===== Enter key for settings input ===== */
+    document.getElementById('settingsChannelIdInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') addTrackingChannel();
     });
   </script>
 
