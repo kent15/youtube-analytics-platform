@@ -1335,13 +1335,38 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script>
-    /* ===== Mock Batch Config (tracked channels) ===== */
-    let MOCK_BATCH_CONFIG = [
-      { channelId: 'UCZf__ehlCEBPop-_sldpBUQ', label: 'HikakinTV' }
-    ];
+    /* ===== Tracking API ===== */
+    async function checkIsTracked(channelId) {
+      try {
+        var res = await fetch('/api/tracking/channels/' + encodeURIComponent(channelId) + '/status');
+        if (res.ok) {
+          var data = await res.json();
+          return data.tracked === true;
+        }
+      } catch (e) { /* non-critical */ }
+      return false;
+    }
 
-    function isTracked(channelId) {
-      return MOCK_BATCH_CONFIG.some(function(c) { return c.channelId === channelId; });
+    async function fetchTrackingChannels() {
+      try {
+        var res = await fetch('/api/tracking/channels');
+        if (res.ok) return await res.json();
+      } catch (e) { /* non-critical */ }
+      return [];
+    }
+
+    async function apiAddTrackingChannel(channelId, label) {
+      var res = await fetch('/api/tracking/channels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId: channelId, label: label })
+      });
+      return res.ok || res.status === 409;
+    }
+
+    async function apiRemoveTrackingChannel(channelId) {
+      var res = await fetch('/api/tracking/channels/' + encodeURIComponent(channelId), { method: 'DELETE' });
+      return res.ok;
     }
 
     /* ===== State ===== */
@@ -1511,7 +1536,7 @@
     }
 
     /* ===== Render Result ===== */
-    function renderResult(data) {
+    async function renderResult(data) {
       const ch = data.channel;
       document.getElementById('resultAvatar').textContent = ch.channelName ? ch.channelName.charAt(0).toUpperCase() : '?';
       document.getElementById('resultName').textContent = ch.channelName;
@@ -1546,7 +1571,8 @@
       var graphSection = document.getElementById('graphSection');
       var trackingCta = document.getElementById('trackingCta');
 
-      if (isTracked(currentChannelId)) {
+      var tracked = await checkIsTracked(currentChannelId);
+      if (tracked) {
         // Channel is tracked -> show graph (if data exists), hide CTA
         trackingCta.style.display = 'none';
         if (data.snapshots && data.snapshots.length > 1) {
@@ -1814,36 +1840,42 @@
     }
 
     /* ===== Settings: Render list ===== */
-    function renderSettingsList() {
+    var _trackingChannelsCache = [];
+
+    async function renderSettingsList() {
       var list = document.getElementById('settingsList');
       var count = document.getElementById('settingsCount');
-      count.textContent = MOCK_BATCH_CONFIG.length + '件';
 
-      if (MOCK_BATCH_CONFIG.length === 0) {
+      _trackingChannelsCache = await fetchTrackingChannels();
+      count.textContent = _trackingChannelsCache.length + '件';
+
+      if (_trackingChannelsCache.length === 0) {
         list.innerHTML = '<li class="settings-empty">トラッキング対象のチャンネルが登録されていません。</li>';
         return;
       }
 
       list.innerHTML = '';
-      MOCK_BATCH_CONFIG.forEach(function(ch, i) {
+      _trackingChannelsCache.forEach(function(ch) {
         var li = document.createElement('li');
         li.className = 'settings-list-item';
-        var initial = ch.label ? ch.label.charAt(0).toUpperCase() : ch.channelId.charAt(0);
+        var label = ch.label || ch.Label || '';
+        var chId = ch.channelId || ch.ChannelId || '';
+        var initial = label ? label.charAt(0).toUpperCase() : chId.charAt(0);
         li.innerHTML =
           '<div class="settings-channel-info">' +
             '<div class="settings-channel-avatar">' + escapeHtml(initial) + '</div>' +
             '<div>' +
-              '<div class="settings-channel-name">' + escapeHtml(ch.label || '(ラベルなし)') + '</div>' +
-              '<div class="settings-channel-id">' + escapeHtml(ch.channelId) + '</div>' +
+              '<div class="settings-channel-name">' + escapeHtml(label || '(ラベルなし)') + '</div>' +
+              '<div class="settings-channel-id">' + escapeHtml(chId) + '</div>' +
             '</div>' +
           '</div>' +
-          '<button class="btn-remove" onclick="removeTrackingChannel(' + i + ')">削除</button>';
+          '<button class="btn-remove" onclick="removeTrackingChannel(\'' + escapeHtml(chId) + '\')">削除</button>';
         list.appendChild(li);
       });
     }
 
     /* ===== Settings: Add channel ===== */
-    function addTrackingChannel() {
+    async function addTrackingChannel() {
       var idInput = document.getElementById('settingsChannelIdInput');
       var labelInput = document.getElementById('settingsChannelLabelInput');
       var channelId = idInput.value.trim();
@@ -1854,24 +1886,26 @@
         return;
       }
 
-      if (isTracked(channelId)) {
-        showToast('このチャンネルは既に登録されています');
-        return;
+      var ok = await apiAddTrackingChannel(channelId, label || channelId);
+      if (ok) {
+        idInput.value = '';
+        labelInput.value = '';
+        await renderSettingsList();
+        showToast('チャンネルを登録しました');
+      } else {
+        showToast('登録に失敗しました');
       }
-
-      MOCK_BATCH_CONFIG.push({ channelId: channelId, label: label || channelId });
-      idInput.value = '';
-      labelInput.value = '';
-      renderSettingsList();
-      showToast('チャンネルを登録しました');
     }
 
     /* ===== Settings: Remove channel ===== */
-    function removeTrackingChannel(index) {
-      var ch = MOCK_BATCH_CONFIG[index];
-      MOCK_BATCH_CONFIG.splice(index, 1);
-      renderSettingsList();
-      showToast((ch.label || ch.channelId) + ' を削除しました');
+    async function removeTrackingChannel(channelId) {
+      var ok = await apiRemoveTrackingChannel(channelId);
+      if (ok) {
+        await renderSettingsList();
+        showToast('チャンネルを削除しました');
+      } else {
+        showToast('削除に失敗しました');
+      }
     }
 
     /* ===== Enter key for settings input ===== */

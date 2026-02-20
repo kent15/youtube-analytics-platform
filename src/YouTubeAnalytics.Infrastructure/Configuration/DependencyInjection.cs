@@ -4,6 +4,7 @@ using StackExchange.Redis;
 using YouTubeAnalytics.Application.Interfaces;
 using YouTubeAnalytics.Domain.Repositories;
 using YouTubeAnalytics.Domain.Services;
+using YouTubeAnalytics.Infrastructure.Batch;
 using YouTubeAnalytics.Infrastructure.Cache;
 using YouTubeAnalytics.Infrastructure.Persistence.Repositories;
 using YouTubeAnalytics.Infrastructure.YouTube;
@@ -12,7 +13,7 @@ namespace YouTubeAnalytics.Infrastructure.Configuration;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, string? configFilePath = null)
     {
         var connectionString = configuration["DatabaseConfig:ConnectionString"]
             ?? throw new InvalidOperationException("DatabaseConfig:ConnectionString is required");
@@ -56,6 +57,18 @@ public static class DependencyInjection
         var topPercent = configuration.GetValue<int>("AnalysisConfig:ViralDependency:TopPercent", 10);
         var shareThreshold = configuration.GetValue<int>("AnalysisConfig:ViralDependency:ShareThreshold", 50);
         services.AddSingleton(new PublishingPatternService(highFreq, medFreq, topPercent, shareThreshold));
+
+        // Batch Config
+        var batchConfig = new BatchConfig();
+        configuration.GetSection("BatchConfig").Bind(batchConfig);
+        var resolvedConfigPath = configFilePath ?? "appsettings.json";
+
+        services.AddSingleton(sp => new BatchConfigStore(
+            resolvedConfigPath,
+            batchConfig,
+            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<BatchConfigStore>>()));
+
+        services.AddHostedService<ChannelSnapshotCollectorService>();
 
         return services;
     }

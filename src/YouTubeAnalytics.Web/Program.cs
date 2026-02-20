@@ -12,7 +12,8 @@ builder.Host.UseSerilog((context, config) =>
 // Infrastructure (Repositories, Cache, YouTube API, Domain Services)
 if (!builder.Environment.IsEnvironment("Testing"))
 {
-    builder.Services.AddInfrastructure(builder.Configuration);
+    var configFilePath = Path.Combine(builder.Environment.ContentRootPath, "appsettings.json");
+    builder.Services.AddInfrastructure(builder.Configuration, configFilePath);
 }
 
 // Application Services
@@ -87,6 +88,44 @@ app.MapGet("/api/quota", async (HttpContext context) =>
     return Results.Ok(new { remaining, limit = 10000 });
 });
 
+// Tracking channels API
+app.MapGet("/api/tracking/channels", (HttpContext context) =>
+{
+    var store = context.RequestServices.GetRequiredService<BatchConfigStore>();
+    var channels = store.GetChannels();
+    return Results.Ok(channels);
+});
+
+app.MapGet("/api/tracking/channels/{channelId}/status", (string channelId, HttpContext context) =>
+{
+    var store = context.RequestServices.GetRequiredService<BatchConfigStore>();
+    return Results.Ok(new { tracked = store.IsTracked(channelId) });
+});
+
+app.MapPost("/api/tracking/channels", (AddTrackingChannelRequest req, HttpContext context) =>
+{
+    if (string.IsNullOrWhiteSpace(req.ChannelId))
+        return Results.BadRequest(new { error = "ChannelId is required" });
+
+    var store = context.RequestServices.GetRequiredService<BatchConfigStore>();
+    if (store.IsTracked(req.ChannelId))
+        return Results.Conflict(new { error = "Channel is already tracked" });
+
+    store.AddChannel(req.ChannelId, req.Label ?? req.ChannelId);
+    return Results.Created($"/api/tracking/channels/{req.ChannelId}/status", new { channelId = req.ChannelId, label = req.Label });
+});
+
+app.MapDelete("/api/tracking/channels/{channelId}", (string channelId, HttpContext context) =>
+{
+    var store = context.RequestServices.GetRequiredService<BatchConfigStore>();
+    if (!store.RemoveChannel(channelId))
+        return Results.NotFound(new { error = "Channel not found in tracking list" });
+
+    return Results.Ok(new { removed = channelId });
+});
+
 app.Run();
 
 public partial class Program { }
+
+record AddTrackingChannelRequest(string ChannelId, string Label);
