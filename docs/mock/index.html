@@ -1027,7 +1027,7 @@
       </div>
 
       <!-- Trend Graphs -->
-      <div class="graph-section">
+      <div class="graph-section" id="graphSection">
         <div class="graph-section-header">
           <div class="section-title" style="margin-bottom:0;">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="var(--primary)">
@@ -1363,13 +1363,13 @@
       });
 
       // Charts: show only for tracked channels
-      const graphSection = document.querySelector('.graph-section');
+      const graphSection = document.getElementById('graphSection');
       const trackingCta = document.getElementById('trackingCta');
       currentChannelData = data;
 
       if (isTracked(channelId)) {
         // Channel is tracked -> show graph, hide CTA
-        graphSection.style.display = '';
+        graphSection.style.display = 'block';
         trackingCta.style.display = 'none';
         currentPeriod = 30;
         document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
@@ -1378,7 +1378,7 @@
       } else {
         // Channel is NOT tracked -> hide graph, show CTA
         graphSection.style.display = 'none';
-        trackingCta.style.display = '';
+        trackingCta.style.display = 'block';
       }
 
       // Video table
